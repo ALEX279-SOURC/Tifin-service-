@@ -1,19 +1,19 @@
 {
   "name": "Tiffinmate",
   "short_name": "Tiffinmate",
-  "start_url": "./",
+  "start_url": "https://alex279-sourc.github.io/Tifin-service-/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ff6f00",
   "description": "Fresh and healthy tiffin delivery service",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "https://iili.io/nj33MD7.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "https://iili.io/nj33MD7.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
