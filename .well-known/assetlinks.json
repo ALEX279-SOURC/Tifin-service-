@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.tiffinmate.app",
+    "sha256_cert_fingerprints": ["40:AF:A0:E8:FC:DF:0F:3A:8F:BC:F6:EF:5B:A7:23:76:2D:8A:15:76:1F:51:48:6F:6D:DF:1B:8C:A8:2F:35:47"]
+  }
+}]
