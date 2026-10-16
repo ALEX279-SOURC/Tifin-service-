@@ -1,0 +1,12 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "alex279-sourc.github",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Tiffinmate",
+  "start_url": "/",
+  "theme_color": "#ffd5d5",
+  "id": "/"
+}
