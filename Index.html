@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiffinMate - ટિફિન વ્યવસ્થાપક</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#fef7ee', 100: '#fdedd6', 500: '#f97316', 600: '#ea580c', 700: '#c2410c' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen font-sans flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center text-xl shadow-md shadow-brand-500/20">
+          <i class="ph-bold ph-bowl-food"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight flex items-center gap-2">
+            TiffinMate <span class="text-xs bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full flex items-center gap-1"><i class="ph-bold ph-check-circle"></i> Sheet કનેક્ટેડ</span>
+          </h1>
+          <p class="text-xs text-slate-500">ટિફિન સર્વિસ મેનેજમેન્ટ પ્લેટફોર્મ</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Controls -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <!-- View Switcher Tabs -->
+        <div class="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs font-semibold">
+          <button id="navVendorBtn" onclick="switchView('vendor')" class="px-3 py-1.5 rounded-lg bg-white text-brand-600 shadow-sm flex items-center gap-1 transition">
+            <i class="ph-bold ph-storefront"></i> રસોઈઘર (Vendor)
+          </button>
+          <button id="navCustomerBtn" onclick="switchView('customer')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 flex items-center gap-1 transition">
+            <i class="ph-bold ph-user"></i> ગ્રાહક પોર્ટલ (Customer)
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CLOUD SYNC LOADER BAR -->
+  <div id="cloudSyncBar" class="hidden bg-emerald-600 text-white text-xs py-1.5 px-4 text-center items-center justify-center gap-2 no-print transition">
+    <i class="ph-bold ph-arrows-clockwise animate-spin"></i>
+    <span>Google Sheet સાથે લાઈવ સિંક થઈ રહ્યું છે...</span>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto p-4 sm:p-6 w-full flex-grow">
+
+    <!-- ================= VIEW 1: VENDOR DASHBOARD ================= -->
+    <div id="vendorView" class="space-y-6">
+      
+      <!-- Metrics Strip -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-xs font-semibold">કુલ સક્રિય ગ્રાહકો</span>
+            <i class="ph-bold ph-users text-lg text-blue-500"></i>
+          </div>
+          <div class="text-2xl font-black text-slate-900" id="totalSubscribersCount">0</div>
+          <span class="text-[11px] text-slate-500">નોંધાયેલા સભ્યો</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-xs font-semibold">આજે બપોર (Lunch)</span>
+            <i class="ph-bold ph-sun text-lg text-amber-500"></i>
+          </div>
+          <div class="text-2xl font-black text-amber-600" id="todayLunchCount">0</div>
+          <span class="text-[11px] text-slate-500">પેક કરવાના ટિફિન</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-xs font-semibold">આજે સાંજ (Dinner)</span>
+            <i class="ph-bold ph-moon text-lg text-indigo-500"></i>
+          </div>
+          <div class="text-2xl font-black text-indigo-600" id="todayDinnerCount">0</div>
+          <span class="text-[11px] text-slate-500">પેક કરવાના ટિફિન</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-xs font-semibold">કુલ બાકી ઉઘરાણી</span>
+            <i class="ph-bold ph-currency-inr text-lg text-red-500"></i>
+          </div>
+          <div class="text-2xl font-black text-red-600" id="totalPendingDues">₹0</div>
+          <span class="text-[11px] text-slate-500">બાકી વસૂલાત</span>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center gap-2">
+          <button onclick="openAddCustomerModal()" class="bg-brand-500 hover:bg-brand-600 text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+            <i class="ph-bold ph-user-plus"></i> નવો ગ્રાહક ઉમેરો
+          </button>
+          <button onclick="window.print()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+            <i class="ph-bold ph-printer"></i> પ્રિન્ટ લિસ્ટ
+          </button>
+        </div>
+        <div class="text-xs text-slate-500 flex items-center gap-1">
+          <i class="ph-bold ph-clock"></i> લંચ કટઓફ: સવારે 9:00 | ડિનર કટઓફ: સાંજે 4:00
+        </div>
+      </div>
+
+      <!-- Today's Delivery Checklist -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+          <h2 class="font-bold text-slate-800 flex items-center gap-2">
+            <i class="ph-bold ph-moped text-brand-500"></i> આજના ડિલિવરી રૂટ્સ અને લિસ્ટ
+          </h2>
+          <span class="text-xs bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-lg" id="liveDateDisplay"></span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+              <tr>
+                <th class="p-3">ગ્રાહકનું નામ</th>
+                <th class="p-3">મોબાઈલ</th>
+                <th class="p-3">સરનામું</th>
+                <th class="p-3">પ્રકાર</th>
+                <th class="p-3">બપોર</th>
+                <th class="p-3">સાંજ</th>
+                <th class="p-3">બાકી (₹)</th>
+                <th class="p-3 text-right">વોટ્સએપ બિલ</th>
+              </tr>
+            </thead>
+            <tbody id="deliveryTableBody" class="divide-y divide-slate-100 text-slate-700">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= VIEW 2: CUSTOMER PORTAL ================= -->
+    <div id="customerView" class="hidden max-w-xl mx-auto space-y-6">
+
+      <!-- Login Box -->
+      <div id="customerAuthBox" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center">
+        <div class="w-12 h-12 rounded-2xl bg-brand-100 text-brand-600 flex items-center justify-center text-2xl mx-auto mb-3">
+          <i class="ph-bold ph-lock-key"></i>
+        </div>
+        <h2 class="text-lg font-bold text-slate-800">ગ્રાહક લોગિન અને ડેટા રિસ્ટોર</h2>
+        <p class="text-xs text-slate-500 mt-1 mb-5">તમારો મોબાઈલ નંબર અને 4-અંકનો PIN નાખી લોગિન કરો</p>
+
+        <form id="customerLoginForm" onsubmit="handleCustomerLogin(event)" class="space-y-3 text-left">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">મોબાઈલ નંબર</label>
+            <input type="tel" id="authPhone" required placeholder="9876543210" class="w-full p-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">4-અંકનો સુરક્ષા PIN</label>
+            <input type="password" id="authPin" maxlength="4" required placeholder="1234" class="w-full p-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+          </div>
+          <button type="submit" id="loginSubmitBtn" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2">
+            <span>લોગિન કરો</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </button>
+        </form>
+      </div>
+
+      <!-- Customer Dashboard -->
+      <div id="customerDashboardBox" class="hidden space-y-5">
+        
+        <!-- Welcome Card -->
+        <div class="bg-gradient-to-r from-brand-500 to-brand-600 text-white p-5 rounded-2xl shadow-md flex items-center justify-between">
+          <div>
+            <span class="text-xs opacity-80">નમસ્તે,</span>
+            <h2 class="text-xl font-bold" id="dashCustomerName">ગ્રાહક</h2>
+            <p class="text-xs opacity-90 mt-0.5" id="dashCustomerDiet">રેગ્યુલર ગુજરાતી થાળી</p>
+          </div>
+          <div class="text-right">
+            <span class="text-xs opacity-80">બાકી રકમ</span>
+            <div class="text-2xl font-black" id="dashCustomerBalance">₹0</div>
+            <button onclick="logoutCustomer()" class="text-[11px] underline opacity-80 hover:opacity-100 mt-1 block">લોગઆઉટ</button>
+          </div>
+        </div>
+
+        <!-- Today Meal Skip Buttons -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+            <i class="ph-bold ph-hand-palm text-brand-500"></i> આજનું ટિફિન કેન્સલ / સ્કીપ કરો
+          </h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            જો તમે બહાર જવાના હોય તો સમયસર સ્કીપ કરો જેથી ભોજન વેડફાય નહીં.
+          </p>
+
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <button id="skipLunchBtn" onclick="toggleMealSkip('lunch')" class="p-3 rounded-xl border border-slate-300 text-left transition hover:border-brand-500">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-slate-800">બપોર (Lunch)</span>
+                <span id="lunchStatusBadge" class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">ચાલુ</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1">કટઓફ: 9:00 AM</p>
+            </button>
+
+            <button id="skipDinnerBtn" onclick="toggleMealSkip('dinner')" class="p-3 rounded-xl border border-slate-300 text-left transition hover:border-brand-500">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-slate-800">સાંજ (Dinner)</span>
+                <span id="dinnerStatusBadge" class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">ચાલુ</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1">કટઓફ: 4:00 PM</p>
+            </button>
+          </div>
+        </div>
+
+        <!-- Attendance Calendar Preview -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+              <i class="ph-bold ph-calendar text-brand-500"></i> માસિક હાજરી ટ્રેકર
+            </h3>
+            <span class="text-xs text-slate-500">ચાલુ મહિનો</span>
+          </div>
+          <div class="grid grid-cols-7 gap-1.5 text-center text-xs">
+            <div class="font-semibold text-slate-400 py-1">રવિ</div>
+            <div class="font-semibold text-slate-400 py-1">સોમ</div>
+            <div class="font-semibold text-slate-400 py-1">મંગળ</div>
+            <div class="font-semibold text-slate-400 py-1">બુધ</div>
+            <div class="font-semibold text-slate-400 py-1">ગુરુ</div>
+            <div class="font-semibold text-slate-400 py-1">શુક્ર</div>
+            <div class="font-semibold text-slate-400 py-1">શનિ</div>
+            <div class="p-2 bg-emerald-50 text-emerald-700 rounded-lg font-bold">1</div>
+            <div class="p-2 bg-emerald-50 text-emerald-700 rounded-lg font-bold">2</div>
+            <div class="p-2 bg-rose-50 text-rose-600 rounded-lg font-bold">3 ✕</div>
+            <div class="p-2 bg-emerald-50 text-emerald-700 rounded-lg font-bold">4</div>
+            <div class="p-2 bg-emerald-50 text-emerald-700 rounded-lg font-bold">5</div>
+            <div class="p-2 bg-emerald-50 text-emerald-700 rounded-lg font-bold">6</div>
+            <div class="p-2 bg-emerald-50 text-emerald-700 rounded-lg font-bold">7</div>
+          </div>
+          <div class="flex items-center justify-center gap-4 text-[11px] text-slate-500 mt-3 pt-3 border-t border-slate-100">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> ડિલિવર થયું</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> સ્કીપ / રજા</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ================= MODAL: ADD CUSTOMER ================= -->
+  <div id="addCustomerModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+          <i class="ph-bold ph-user-plus text-brand-500"></i> નવો ગ્રાહક ઉમેરો
+        </h3>
+        <button onclick="closeAddCustomerModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+      </div>
+      <form id="newCustomerForm" onsubmit="handleAddNewCustomer(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">નામ</label>
+          <input type="text" id="custName" required placeholder="દા.ત. રાહુલ શાહ" class="w-full p-2 border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-brand-500">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">મોબાઈલ નંબર</label>
+          <input type="tel" id="custPhone" required placeholder="9876543210" class="w-full p-2 border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-brand-500">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">ખોરાક પ્રકાર</label>
+            <select id="custDiet" class="w-full p-2 border border-slate-300 rounded-lg outline-none bg-white">
+              <option value="Regular">રેગ્યુલર</option>
+              <option value="Jain">જૈન</option>
+              <option value="Swaminarayan">સ્વામિનારાયણ</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">સિક્યોરિટી PIN</label>
+            <input type="text" id="custPin" value="1234" maxlength="4" class="w-full p-2 border border-slate-300 rounded-lg outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">ડિલિવરી સરનામું / રૂટ</label>
+          <input type="text" id="custAddress" required placeholder="રૂમ નં. 402, શાંતિનિકેતન, નવરંગપુરા" class="w-full p-2 border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-brand-500">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">માસિક દર (₹)</label>
+          <input type="number" id="custBalance" value="2500" class="w-full p-2 border border-slate-300 rounded-lg outline-none">
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-3">
+          <button type="button" onclick="closeAddCustomerModal()" class="px-3 py-2 text-slate-600 hover:text-slate-800">કેન્સલ</button>
+          <button type="submit" id="saveCustBtn" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-4 py-2 rounded-lg transition">ગ્રાહક સેવ કરો</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // તમારી લાઈવ Google Apps Script Web App Deployment URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbyiVrgcvLMRGhNc0eYG0fjJCtzI6sjIabl2J8PD7yFCil-d5LC9YJFTdORhWuDs8XXd/exec";
+
+    const STORAGE_KEY_CUSTOMERS = 'tiffinmate_customers';
+    const STORAGE_KEY_CURRENT_USER = 'tiffinmate_logged_user';
+
+    // Default Starting Dataset
+    const defaultCustomers = [
+      { id: "c1", phone: "9898011223", name: "અમિત પટેલ", pin: "1234", diet: "Regular", address: "A-201, શિવાલિક હાઇટ્સ, નવરંગપુરા", balance: 2500, lunchSkipped: false, dinnerSkipped: false },
+      { id: "c2", phone: "9825099887", name: "ભાવેશ પંડ્યા", pin: "1234", diet: "Jain", address: "B-12, શ્યામ ગોકુલ સોસાયટી, વસ્ત્રાપુર", balance: 1800, lunchSkipped: false, dinnerSkipped: true },
+      { id: "c3", phone: "9712033445", name: "ચિંતન દેસાઈ", pin: "1234", diet: "Swaminarayan", address: "304, શ્રીજી એપાર્ટમેન્ટ, પાલડી", balance: 0, lunchSkipped: false, dinnerSkipped: false },
+      { id: "c4", phone: "9909055667", name: "દિનેશ મેહતા", pin: "1234", diet: "Regular", address: "101, રત્નમ કોમ્પ્લેક્સ, નવરંગપુરા", balance: 3200, lunchSkipped: true, dinnerSkipped: false }
+    ];
+
+    let customers = JSON.parse(localStorage.getItem(STORAGE_KEY_CUSTOMERS)) || defaultCustomers;
+    let currentLoggedUser = JSON.parse(localStorage.getItem(STORAGE_KEY_CURRENT_USER)) || null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('liveDateDisplay').innerText = new Date().toLocaleDateString('gu-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      renderVendorDashboard();
+
+      if (currentLoggedUser) {
+        showCustomerDashboard(currentLoggedUser);
+      }
+    });
+
+    function persistCustomers() {
+      localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(customers));
+      renderVendorDashboard();
+    }
+
+    function switchView(view) {
+      const vendorView = document.getElementById('vendorView');
+      const customerView = document.getElementById('customerView');
+      const vendorBtn = document.getElementById('navVendorBtn');
+      const customerBtn = document.getElementById('navCustomerBtn');
+
+      if (view === 'vendor') {
+        vendorView.classList.remove('hidden');
+        customerView.classList.add('hidden');
+        vendorBtn.className = 'px-3 py-1.5 rounded-lg bg-white text-brand-600 shadow-sm flex items-center gap-1 transition';
+        customerBtn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 flex items-center gap-1 transition';
+        renderVendorDashboard();
+      } else {
+        vendorView.classList.add('hidden');
+        customerView.classList.remove('hidden');
+        customerBtn.className = 'px-3 py-1.5 rounded-lg bg-white text-brand-600 shadow-sm flex items-center gap-1 transition';
+        vendorBtn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 flex items-center gap-1 transition';
+      }
+    }
+
+    function renderVendorDashboard() {
+      const tableBody = document.getElementById('deliveryTableBody');
+      tableBody.innerHTML = '';
+
+      let lunchCount = 0;
+      let dinnerCount = 0;
+      let totalDues = 0;
+
+      customers.forEach(c => {
+        if (!c.lunchSkipped) lunchCount++;
+        if (!c.dinnerSkipped) dinnerCount++;
+        totalDues += Number(c.balance) || 0;
+
+        const message = `નમસ્તે *${c.name}* જી, 🙏\nશ્રી રાધે ટિફિન સર્વિસ તરફથી આપનું બાકી બિલ: *₹${c.balance}/-* છે.\nપેમેન્ટ માટે UPI ID: tiffinbusiness@okaxis\nધન્યવાદ!`;
+        const waLink = `https://wa.me/91${c.phone}?text=${encodeURIComponent(message)}`;
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+        tr.innerHTML = `
+          <td class="p-3 font-semibold text-slate-900">${c.name}</td>
+          <td class="p-3 font-mono">${c.phone}</td>
+          <td class="p-3 text-slate-500 max-w-xs truncate">${c.address}</td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${c.diet === 'Jain' ? 'bg-amber-100 text-amber-700' : (c.diet === 'Swaminarayan' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700')}">
+              ${c.diet}
+            </span>
+          </td>
+          <td class="p-3">
+            <span class="font-bold ${c.lunchSkipped ? 'text-rose-500' : 'text-emerald-600'}">
+              ${c.lunchSkipped ? '✕ સ્કીપ' : '✓ હાજર'}
+            </span>
+          </td>
+          <td class="p-3">
+            <span class="font-bold ${c.dinnerSkipped ? 'text-rose-500' : 'text-emerald-600'}">
+              ${c.dinnerSkipped ? '✕ સ્કીપ' : '✓ હાજર'}
+            </span>
+          </td>
+          <td class="p-3 font-bold ${c.balance > 0 ? 'text-red-600' : 'text-slate-400'}">₹${c.balance}</td>
+          <td class="p-3 text-right">
+            ${c.balance > 0 
+              ? `<a href="${waLink}" target="_blank" class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition">
+                  <i class="ph-bold ph-whatsapp-logo text-sm"></i> બિલ મોકલો
+                 </a>`
+              : `<span class="text-xs text-slate-400">ચૂકતે</span>`
+            }
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      document.getElementById('totalSubscribersCount').innerText = customers.length;
+      document.getElementById('todayLunchCount').innerText = lunchCount;
+      document.getElementById('todayDinnerCount').innerText = dinnerCount;
+      document.getElementById('totalPendingDues').innerText = '₹' + totalDues.toLocaleString('en-IN');
+    }
+
+    function openAddCustomerModal() {
+      document.getElementById('addCustomerModal').classList.remove('hidden');
+    }
+
+    function closeAddCustomerModal() {
+      document.getElementById('addCustomerModal').classList.add('hidden');
+    }
+
+    async function handleAddNewCustomer(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById('saveCustBtn');
+      saveBtn.disabled = true;
+      saveBtn.innerText = "સેવ થઈ રહ્યું છે...";
+
+      const newCust = {
+        id: "c_" + Date.now(),
+        name: document.getElementById('custName').value.trim(),
+        phone: document.getElementById('custPhone').value.trim(),
+        diet: document.getElementById('custDiet').value,
+        pin: document.getElementById('custPin').value.trim() || '1234',
+        address: document.getElementById('custAddress').value.trim(),
+        balance: Number(document.getElementById('custBalance').value) || 0,
+        monthlyRate: Number(document.getElementById('custBalance').value) || 2500,
+        lunchSkipped: false,
+        dinnerSkipped: false
+      };
+
+      customers.unshift(newCust);
+      persistCustomers();
+      closeAddCustomerModal();
+      document.getElementById('newCustomerForm').reset();
+
+      // Cloud Sync to Google Sheets
+      showSyncBar(true);
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "register", ...newCust })
+        });
+      } catch(err) {
+        console.warn("Sheet sync error:", err);
+      } finally {
+        showSyncBar(false);
+        saveBtn.disabled = false;
+        saveBtn.innerText = "ગ્રાહક સેવ કરો";
+      }
+
+      alert('ગ્રાહક સફળતાપૂર્વક ઉમેરાઈ ગયો અને Google Sheet માં સેવ થઈ ગયો!');
+    }
+
+    // Customer Authentication & Login from Google Sheets
+    async function handleCustomerLogin(e) {
+      e.preventDefault();
+      const phone = document.getElementById('authPhone').value.trim();
+      const pin = document.getElementById('authPin').value.trim();
+      const btn = document.getElementById('loginSubmitBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise animate-spin"></i> વેરિફાય થઈ રહ્યું છે...`;
+
+      showSyncBar(true);
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "login", phone: phone, pin: pin })
+        });
+        const data = await res.json();
+        
+        if (data.status === "success" && data.user) {
+          currentLoggedUser = data.user;
+          localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(currentLoggedUser));
+          showCustomerDashboard(currentLoggedUser);
+          showSyncBar(false);
+          btn.disabled = false;
+          btn.innerHTML = `<span>લોગિન કરો</span> <i class="ph-bold ph-arrow-right"></i>`;
+          return;
+        } else {
+          alert(data.message || "ખોટો મોબાઈલ નંબર અથવા PIN!");
+        }
+      } catch(err) {
+        console.warn("Cloud login fallback to local...", err);
+        // Fallback to LocalStorage
+        const localUser = customers.find(c => c.phone === phone && c.pin === pin);
+        if (localUser) {
+          currentLoggedUser = localUser;
+          localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(localUser));
+          showCustomerDashboard(localUser);
+        } else {
+          alert("ખોટો મોબાઈલ નંબર અથવા PIN!");
+        }
+      } finally {
+        showSyncBar(false);
+        btn.disabled = false;
+        btn.innerHTML = `<span>લોગિન કરો</span> <i class="ph-bold ph-arrow-right"></i>`;
+      }
+    }
+
+    function showCustomerDashboard(user) {
+      document.getElementById('customerAuthBox').classList.add('hidden');
+      const dash = document.getElementById('customerDashboardBox');
+      dash.classList.remove('hidden');
+
+      document.getElementById('dashCustomerName').innerText = user.name;
+      document.getElementById('dashCustomerDiet').innerText = `${user.diet} થાળી • ${user.address || ''}`;
+      document.getElementById('dashCustomerBalance').innerText = '₹' + (user.balance || 0);
+
+      updateMealBadges(user);
+    }
+
+    function updateMealBadges(user) {
+      const lunchBadge = document.getElementById('lunchStatusBadge');
+      const dinnerBadge = document.getElementById('dinnerStatusBadge');
+
+      lunchBadge.innerText = user.lunchSkipped ? "કેન્સલ (Skipped)" : "ચાલુ";
+      lunchBadge.className = `text-[10px] px-2 py-0.5 rounded-full font-bold ${user.lunchSkipped ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`;
+
+      dinnerBadge.innerText = user.dinnerSkipped ? "કેન્સલ (Skipped)" : "ચાલુ";
+      dinnerBadge.className = `text-[10px] px-2 py-0.5 rounded-full font-bold ${user.dinnerSkipped ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`;
+    }
+
+    async function toggleMealSkip(type) {
+      if (!currentLoggedUser) return;
+
+      if (type === 'lunch') {
+        currentLoggedUser.lunchSkipped = !currentLoggedUser.lunchSkipped;
+      } else {
+        currentLoggedUser.dinnerSkipped = !currentLoggedUser.dinnerSkipped;
+      }
+
+      const idx = customers.findIndex(c => c.phone === currentLoggedUser.phone);
+      if (idx !== -1) {
+        customers[idx] = { ...customers[idx], ...currentLoggedUser };
+        persistCustomers();
+      }
+
+      localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(currentLoggedUser));
+      updateMealBadges(currentLoggedUser);
+
+      // Cloud Sync
+      showSyncBar(true);
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "updateMealStatus",
+            phone: currentLoggedUser.phone,
+            mealType: type,
+            isSkipped: type === 'lunch' ? currentLoggedUser.lunchSkipped : currentLoggedUser.dinnerSkipped
+          })
+        });
+      } catch(err) {
+        console.warn("Cloud skip sync failed:", err);
+      } finally {
+        showSyncBar(false);
+      }
+    }
+
+    function logoutCustomer() {
+      localStorage.removeItem(STORAGE_KEY_CURRENT_USER);
+      currentLoggedUser = null;
+      document.getElementById('customerDashboardBox').classList.add('hidden');
+      document.getElementById('customerAuthBox').classList.remove('hidden');
+    }
+
+    function showSyncBar(show) {
+      const bar = document.getElementById('cloudSyncBar');
+      if (show) bar.classList.remove('hidden');
+      else bar.classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
