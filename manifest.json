@@ -1,5 +1,5 @@
 {
-  "background_color": "#ffffff",
+  "background_color": "rgb(21, 3, 3)",
   "dir": "ltr",
   "display": "standalone",
   "name": "alex279-sourc.github",
@@ -7,6 +7,7 @@
   "scope": "/",
   "short_name": "Tiffinmate",
   "start_url": "/",
-  "theme_color": "#ffd5d5",
-  "id": "/"
+  "theme_color": "#f4bebe",
+  "id": "/",
+  "description": "Fresh and healthy tiffin delivery service"
 }
