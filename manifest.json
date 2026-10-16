@@ -1,13 +1,22 @@
 {
-  "background_color": "rgb(21, 3, 3)",
-  "dir": "ltr",
-  "display": "standalone",
-  "name": "alex279-sourc.github",
-  "orientation": "any",
-  "scope": "/",
+  "name": "Tiffinmate",
   "short_name": "Tiffinmate",
-  "start_url": "/",
-  "theme_color": "#f4bebe",
-  "id": "/",
-  "description": "Fresh and healthy tiffin delivery service"
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff6f00",
+  "description": "Fresh and healthy tiffin delivery service",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
