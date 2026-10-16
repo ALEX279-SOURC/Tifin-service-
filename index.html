@@ -451,6 +451,11 @@
       if (show) bar.classList.remove('hidden');
       else bar.classList.add('hidden');
     }
+    // Service Worker Registration
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('pwabuilder-sw.js');
+}
+    
   </script>
 </body>
 </html>
